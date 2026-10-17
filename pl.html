@@ -1,0 +1,1189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101913">
+  <title>PL — Premier League, in focus</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #18231d;
+      --muted: #788078;
+      --paper: #f6f7f3;
+      --card: #fff;
+      --line: #e9ece6;
+      --green: #c7fa4b;
+      --green-dark: #24371b;
+      --navy: #101913;
+      --radius: 18px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    .app { min-height: 100vh; }
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 3;
+      display: flex;
+      width: 226px;
+      flex-direction: column;
+      padding: 27px 16px 19px;
+      background: var(--navy);
+      color: #f8faf6;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 12px; }
+    .brand-mark {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border-radius: 12px;
+      background: var(--green);
+      color: var(--navy);
+      font-size: 20px;
+      font-weight: 900;
+    }
+    .brand-name { font-size: 17px; font-weight: 800; letter-spacing: -.7px; }
+    .brand-name span { color: var(--green); }
+    .season-label {
+      margin: 50px 12px 13px;
+      color: #89938b;
+      font-size: 10px;
+      font-weight: 750;
+      letter-spacing: 1.55px;
+      text-transform: uppercase;
+    }
+    .nav { display: grid; gap: 6px; }
+    .nav a {
+      display: flex;
+      min-height: 43px;
+      align-items: center;
+      gap: 12px;
+      padding: 0 12px;
+      border-radius: 10px;
+      color: #aab2ac;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background .18s, color .18s;
+    }
+    .nav a:hover, .nav a.active { background: #202c24; color: #fff; }
+    .nav a.active::before { width: 6px; height: 6px; border-radius: 50%; background: var(--green); content: ""; }
+    .nav-icon { width: 18px; color: #97a199; font-size: 15px; text-align: center; }
+    .nav a.active .nav-icon { color: var(--green); }
+    .side-spacer { flex: 1; }
+    .source-note { padding: 14px 12px 0; border-top: 1px solid #2b352e; color: #98a198; font-size: 10px; line-height: 1.6; }
+    .source-note strong { color: #e0e8df; font-weight: 650; }
+    .main { max-width: 1600px; min-height: 100vh; margin-left: 226px; padding: 0 38px 54px; }
+    .topbar {
+      display: flex;
+      min-height: 78px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      border-bottom: 1px solid var(--line);
+    }
+    .breadcrumb { color: var(--muted); font-size: 12px; }
+    .breadcrumb strong { color: var(--ink); font-weight: 700; }
+    .top-actions { display: flex; align-items: center; gap: 12px; }
+    .live-pill { display: inline-flex; align-items: center; gap: 7px; color: #536056; font-size: 11px; font-weight: 700; }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #70b633; box-shadow: 0 0 0 4px #70b6331a; }
+    .refresh-button {
+      display: inline-flex;
+      min-height: 36px;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .refresh-button:hover { border-color: #bdc8b8; }
+    .page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; padding: 29px 0 22px; }
+    .eyebrow { margin: 0 0 8px; color: #778178; font-size: 10px; font-weight: 750; letter-spacing: 1.65px; text-transform: uppercase; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 6px; font-size: clamp(27px, 3vw, 38px); font-weight: 790; letter-spacing: -1.8px; line-height: 1.08; }
+    .heading-subtitle { margin-bottom: 0; color: var(--muted); font-size: 12px; }
+    .season-chip { flex: 0 0 auto; padding: 8px 11px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: #556056; font-size: 10px; font-weight: 700; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .kpi {
+      min-height: 97px;
+      padding: 17px 18px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: var(--card);
+    }
+    .kpi-label { margin-bottom: 11px; color: var(--muted); font-size: 10px; font-weight: 650; }
+    .kpi-value { display: flex; align-items: baseline; gap: 8px; font-size: 23px; font-weight: 780; letter-spacing: -.8px; }
+    .kpi-meta { color: #929a91; font-size: 10px; font-weight: 550; letter-spacing: 0; }
+    .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(256px, .82fr); align-items: start; gap: 16px; }
+    .panel { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
+    .panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; padding: 20px 21px 15px; }
+    .panel-title { margin: 0 0 4px; font-size: 15px; font-weight: 760; letter-spacing: -.35px; }
+    .panel-caption { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .search-wrap { position: relative; width: min(185px, 45%); }
+    .search-wrap span { position: absolute; top: 50%; left: 10px; transform: translateY(-50%); color: #929990; font-size: 14px; }
+    .search-input { width: 100%; height: 34px; padding: 0 10px 0 30px; border: 1px solid var(--line); border-radius: 9px; outline: none; background: #fff; font-size: 10px; }
+    .search-input:focus { border-color: #9bb67a; }
+    .table-wrap { overflow-x: auto; }
+    .standings-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    .standings-table th { height: 34px; padding: 0 8px; background: #f8f9f6; color: #899188; font-size: 9px; font-weight: 700; text-align: right; white-space: nowrap; }
+    .standings-table th:first-child, .standings-table td:first-child { padding-left: 19px; text-align: left; }
+    .standings-table th:nth-child(2), .standings-table td:nth-child(2) { text-align: left; }
+    .standings-table th:last-child, .standings-table td:last-child { padding-right: 17px; }
+    .standings-table td { height: 43px; padding: 0 8px; border-top: 1px solid #f0f1ed; color: #59635b; font-size: 10px; text-align: right; white-space: nowrap; }
+    .standings-table tbody tr { cursor: pointer; transition: background .14s; }
+    .standings-table tbody tr:hover { background: #f7faef; }
+    .standings-table tbody tr.selected { background: #f3f8e9; }
+    .standings-table .position { width: 33px; color: #849085; font-weight: 700; }
+    .position-rank { display: inline-grid; width: 19px; height: 19px; place-items: center; border-radius: 6px; }
+    .position-rank.champions { background: #edf5e6; color: #5c8b42; }
+    .position-rank.europe { background: #fbf3dc; color: #a5822c; }
+    .position-rank.relegation { background: #fbe9e6; color: #bb665a; }
+    .team-cell { display: flex; align-items: center; gap: 9px; color: var(--ink); font-size: 10px; font-weight: 700; }
+    .team-cell img { width: 22px; height: 22px; object-fit: contain; }
+    .team-abbr { display: none; color: #899188; font-size: 9px; font-weight: 650; }
+    .points { color: var(--ink) !important; font-weight: 800; }
+    .positive { color: #519336 !important; }
+    .negative { color: #c56861 !important; }
+    .form-cell { display: flex; justify-content: flex-end; gap: 3px; }
+    .form-dot { display: grid; width: 15px; height: 15px; place-items: center; border-radius: 50%; font-size: 8px; font-weight: 800; }
+    .form-w { background: #e8f5df; color: #4d8c34; }
+    .form-d { background: #f1f2ee; color: #7c837b; }
+    .form-l { background: #fbe9e6; color: #c75f54; }
+    .table-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 18px; border-top: 1px solid var(--line); color: #858d84; font-size: 9px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 9px; }
+    .legend span { display: flex; align-items: center; gap: 5px; }
+    .legend i { width: 7px; height: 7px; border-radius: 2px; background: #75ae58; }
+    .legend span:nth-child(2) i { background: #d8b653; }
+    .legend span:nth-child(3) i { background: #dc8274; }
+    .aside-stack { display: grid; gap: 15px; }
+    .leader-card { padding: 20px; background: var(--navy); color: #fff; }
+    .leader-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .leader-top .eyebrow { margin-bottom: 0; color: #aab6aa; }
+    .leader-star { color: var(--green); font-size: 18px; }
+    .leader-club { display: flex; align-items: center; gap: 12px; margin: 21px 0 18px; }
+    .leader-club img { width: 47px; height: 47px; padding: 5px; border-radius: 14px; background: #ffffff12; object-fit: contain; }
+    .leader-club h3 { margin: 0 0 3px; font-size: 16px; font-weight: 750; }
+    .leader-club p { margin: 0; color: #abb4ac; font-size: 10px; }
+    .leader-stats { display: grid; grid-template-columns: repeat(3, 1fr); padding-top: 14px; border-top: 1px solid #ffffff20; }
+    .leader-stat { padding-left: 11px; border-left: 1px solid #ffffff20; }
+    .leader-stat:first-child { padding-left: 0; border: 0; }
+    .leader-stat strong { display: block; margin-bottom: 4px; font-size: 18px; font-variant-numeric: tabular-nums; }
+    .leader-stat span { color: #aab4ac; font-size: 9px; }
+    .fixtures-card { padding-bottom: 4px; }
+    .fixture-item { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 7px; padding: 12px 17px; border-top: 1px solid #f0f1ed; }
+    .fixture-team { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 10px; font-weight: 650; }
+    .fixture-team:last-child { flex-direction: row-reverse; text-align: right; }
+    .fixture-team img { width: 19px; height: 19px; object-fit: contain; }
+    .fixture-team span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .fixture-mid { color: #899188; font-size: 9px; text-align: center; white-space: nowrap; }
+    .fixtures-empty { padding: 10px 17px 16px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 31px 0 13px; }
+    .section-head h2 { margin: 0; font-size: 19px; font-weight: 780; letter-spacing: -.7px; }
+    .section-head p { margin: 4px 0 0; color: var(--muted); font-size: 10px; }
+    .club-tabs { display: flex; flex-wrap: wrap; gap: 5px; padding: 0 20px; border-bottom: 1px solid var(--line); }
+    .club-tab { position: relative; padding: 12px 9px 11px; border: 0; background: none; color: #808980; cursor: pointer; font-size: 10px; font-weight: 700; }
+    .club-tab.active { color: var(--ink); }
+    .club-tab.active::after { position: absolute; right: 8px; bottom: -1px; left: 8px; height: 2px; background: #89b840; content: ""; }
+    .club-profile { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(210px, .8fr); gap: 16px; padding: 20px; }
+    .profile-club { display: flex; align-items: center; gap: 15px; min-width: 0; }
+    .profile-logo { display: grid; width: 58px; height: 58px; flex: 0 0 auto; place-items: center; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+    .profile-logo img { width: 40px; height: 40px; object-fit: contain; }
+    .profile-club h3 { margin: 0 0 4px; font-size: 19px; letter-spacing: -.6px; }
+    .profile-club p { margin: 0; color: var(--muted); font-size: 10px; }
+    .manager-card { display: flex; min-height: 68px; align-items: center; gap: 11px; padding: 10px 13px; border: 1px solid var(--line); border-radius: 13px; }
+    .manager-card img { width: 41px; height: 41px; border-radius: 50%; background: #edf0e9; object-fit: cover; }
+    .manager-card .manager-label { display: block; margin-bottom: 4px; color: var(--muted); font-size: 9px; }
+    .manager-card strong { display: block; font-size: 11px; }
+    .club-tab-content { min-height: 180px; padding: 19px 20px 21px; }
+    .squad-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .player-card { display: flex; min-height: 80px; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+    .player-photo { display: grid; width: 44px; height: 44px; flex: 0 0 auto; overflow: hidden; place-items: center; border-radius: 50%; background: #edf1e9; color: #52644b; font-size: 11px; font-weight: 750; }
+    .player-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .player-photo[data-missing="true"]::after { content: attr(data-initials); }
+    .manager-portrait { position: relative; display: grid; width: 41px; height: 41px; flex: 0 0 auto; overflow: hidden; place-items: center; border-radius: 50%; background: #edf0e9; color: #52644b; font-size: 10px; font-weight: 750; }
+    .manager-portrait img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+    .manager-initials { position: absolute; }
+    .player-info { min-width: 0; }
+    .player-info strong { display: block; overflow: hidden; margin-bottom: 4px; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .player-info strong a { color: inherit; text-decoration: none; }
+    .player-info strong a:hover { text-decoration: underline; text-underline-offset: 2px; }
+    .player-info span { display: block; overflow: hidden; color: var(--muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .player-stats { display: flex; gap: 8px; margin-top: 6px; color: #65705f; font-size: 8px; font-weight: 650; }
+    .profile-note { margin: 0 0 12px; color: var(--muted); font-size: 9px; }
+    .stats-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .stats-group { padding: 15px; border: 1px solid var(--line); border-radius: 13px; }
+    .stats-group h3 { margin: 0 0 13px; font-size: 11px; }
+    .stat-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin: 10px 0 5px; font-size: 9px; }
+    .stat-row strong { font-size: 10px; font-variant-numeric: tabular-nums; }
+    .stat-track { height: 4px; grid-column: 1 / -1; overflow: hidden; border-radius: 99px; background: #edf0e9; }
+    .stat-fill { display: block; height: 100%; border-radius: inherit; background: #94c44c; }
+    .venue-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(200px, .8fr); align-items: center; gap: 20px; }
+    .stadium-map { overflow: hidden; border: 1px solid #e7ece2; border-radius: 14px; background: #e8eee4; }
+    .stadium-map iframe { display: block; width: 100%; min-height: 270px; border: 0; }
+    .map-credit { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; color: #738071; font-size: 9px; }
+    .earth-link { display: inline-flex; min-height: 34px; align-items: center; justify-content: center; gap: 7px; margin-top: 13px; padding: 0 11px; border: 1px solid #e0e7d9; border-radius: 9px; color: #405536; background: #f7faf3; font-size: 9px; font-weight: 750; text-decoration: none; }
+    .earth-link:hover { background: #edf5e6; }
+    .team-staff { display: flex; align-items: center; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+    .team-staff .manager-portrait { width: 34px; height: 34px; }
+    .team-staff span { display: block; margin-bottom: 3px; color: var(--muted); font-size: 8px; }
+    .team-staff strong { display: block; font-size: 10px; }
+    .profile-open { padding: 0; border: 0; background: transparent; color: inherit; cursor: pointer; font: inherit; text-align: left; }
+    .profile-open:hover { color: #557b37; text-decoration: underline; text-underline-offset: 3px; }
+    .profile-title-button { font-size: inherit !important; font-weight: inherit !important; letter-spacing: inherit !important; }
+    .profile-dialog {
+      width: min(680px, calc(100vw - 28px));
+      max-width: none;
+      max-height: min(760px, calc(100dvh - 30px));
+      overflow: auto;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 19px;
+      background: var(--card);
+      color: var(--ink);
+      box-shadow: 0 24px 90px #07100835;
+    }
+    .profile-dialog::backdrop { background: #10191399; backdrop-filter: blur(3px); }
+    .career-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; padding: 22px 23px 17px; border-bottom: 1px solid var(--line); }
+    .career-header h2 { margin: 0 0 5px; font-size: 21px; letter-spacing: -.7px; }
+    .career-header p { margin: 0; color: var(--muted); font-size: 10px; }
+    .career-close { display: grid; width: 31px; height: 31px; flex: 0 0 auto; place-items: center; border: 1px solid var(--line); border-radius: 9px; background: #fff; cursor: pointer; font-size: 17px; }
+    .career-content { padding: 18px 23px 23px; }
+    .career-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 15px 0 19px; }
+    .career-kpi { padding: 12px; border: 1px solid var(--line); border-radius: 11px; background: #fbfcf9; }
+    .career-kpi strong { display: block; margin-bottom: 5px; font-size: 18px; letter-spacing: -.4px; }
+    .career-kpi span { color: var(--muted); font-size: 9px; }
+    .career-subhead { margin: 17px 0 8px; font-size: 11px; font-weight: 750; }
+    .career-text { color: #667066; font-size: 10px; line-height: 1.7; }
+    .career-table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 11px; }
+    .career-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 10px; }
+    .career-table th, .career-table td { padding: 9px 11px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .career-table th { background: #f7f9f5; color: #727e72; font-size: 9px; }
+    .career-table tr:last-child td { border-bottom: 0; }
+    .career-source { display: inline-flex; align-items: center; min-height: 33px; margin-top: 15px; padding: 0 11px; border: 1px solid var(--line); border-radius: 9px; color: #4b663b; background: #f9fbf6; font-size: 9px; font-weight: 750; text-decoration: none; }
+    .career-source:hover { background: #edf5e6; }
+    .career-player-photo { float: left; width: 58px; height: 58px; margin: 0 12px 8px 0; border: 1px solid var(--line); border-radius: 50%; object-fit: cover; }
+    .venue-details h3 { margin: 0 0 5px; font-size: 18px; letter-spacing: -.5px; }
+    .venue-city { margin-bottom: 18px; color: var(--muted); font-size: 10px; }
+    .capacity { display: flex; align-items: baseline; gap: 8px; margin-bottom: 7px; }
+    .capacity strong { font-size: 24px; letter-spacing: -.7px; }
+    .capacity span { color: var(--muted); font-size: 10px; }
+    .venue-description { max-width: 250px; margin: 0; color: #818980; font-size: 9px; line-height: 1.55; }
+    .loading-state, .error-state, .empty-state { padding: 22px 20px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .loading-state::before { display: inline-block; width: 9px; height: 9px; margin-right: 9px; border: 2px solid #dce7d0; border-top-color: #75a54d; border-radius: 50%; content: ""; animation: spin .7s linear infinite; vertical-align: -1px; }
+    .error-state { color: #8f4742; }
+    .error-state button { margin-left: 6px; border: 0; background: none; color: #517739; cursor: pointer; font-weight: 750; text-decoration: underline; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .data-attribution { margin: 16px 0 0; color: #959b93; font-size: 9px; line-height: 1.6; }
+    .hide { display: none !important; }
+
+    @media (max-width: 1120px) {
+      .main { padding-right: 23px; padding-left: 23px; }
+      .sidebar { width: 195px; }
+      .main { margin-left: 195px; }
+      .dashboard-grid { grid-template-columns: minmax(0, 1.5fr) minmax(230px, .8fr); gap: 12px; }
+      .standings-table th, .standings-table td { padding-right: 6px; padding-left: 6px; }
+      .form-cell { gap: 2px; }
+      .form-dot { width: 13px; height: 13px; }
+      .squad-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 860px) {
+      .sidebar { position: sticky; inset: 0 0 auto; width: 100%; height: auto; flex-direction: row; align-items: center; justify-content: space-between; padding: 11px 18px; }
+      .brand { padding: 0; }
+      .brand-mark { width: 32px; height: 32px; }
+      .season-label, .side-spacer, .source-note { display: none; }
+      .nav { display: flex; gap: 3px; }
+      .nav a { min-height: 35px; gap: 6px; padding: 0 9px; font-size: 10px; }
+      .nav a.active::before { display: none; }
+      .nav-icon { width: auto; }
+      .main { margin-left: 0; padding: 0 21px 42px; }
+      .topbar { min-height: 58px; }
+      .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
+      .aside-stack { grid-template-columns: 1fr 1fr; align-items: stretch; }
+      .leader-card { min-height: 180px; }
+      .fixtures-card { min-height: 180px; }
+    }
+    @media (max-width: 620px) {
+      .sidebar { align-items: flex-start; flex-direction: column; gap: 9px; padding: 10px 15px 8px; }
+      .nav { width: 100%; justify-content: space-between; }
+      .nav a { flex: 1; justify-content: center; padding: 0 4px; font-size: 9px; }
+      .nav-icon { display: none; }
+      .main { padding-right: 13px; padding-left: 13px; }
+      .topbar { min-height: 52px; }
+      .breadcrumb { font-size: 10px; }
+      .live-pill { font-size: 0; }
+      .live-dot { width: 8px; height: 8px; }
+      .refresh-button { min-height: 31px; padding: 0 8px; font-size: 9px; }
+      .page-heading { align-items: flex-start; padding: 24px 0 17px; }
+      h1 { font-size: 29px; }
+      .heading-subtitle { max-width: 230px; font-size: 10px; }
+      .season-chip { padding: 7px 8px; font-size: 8px; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+      .kpi { min-height: 78px; padding: 12px; }
+      .kpi-label { margin-bottom: 7px; font-size: 9px; }
+      .kpi-value { font-size: 20px; }
+      .panel-heading { padding: 16px 13px 12px; }
+      .search-wrap { width: 130px; }
+      .standings-table { min-width: 595px; }
+      .team-abbr { display: inline; }
+      .standings-table td { height: 40px; }
+      .table-footer { align-items: flex-start; flex-direction: column; }
+      .aside-stack { grid-template-columns: 1fr; }
+      .leader-card { min-height: 0; }
+      .fixtures-card { min-height: 0; }
+      .section-head { margin-top: 25px; }
+      .section-head h2 { font-size: 17px; }
+      .club-profile { grid-template-columns: 1fr; gap: 12px; padding: 14px; }
+      .profile-logo { width: 48px; height: 48px; }
+      .profile-logo img { width: 33px; height: 33px; }
+      .profile-club h3 { font-size: 16px; }
+      .club-tabs { padding: 0 9px; }
+      .club-tab { padding: 11px 7px 10px; font-size: 9px; }
+      .club-tab-content { padding: 13px; }
+      .squad-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+      .player-card { min-height: 69px; gap: 7px; padding: 7px; }
+      .player-photo { width: 35px; height: 35px; }
+      .player-info strong { font-size: 9px; }
+      .stats-layout { grid-template-columns: 1fr; }
+      .venue-layout { grid-template-columns: 1fr; gap: 14px; }
+      .stadium-map iframe { min-height: 220px; }
+      .venue-details h3 { font-size: 16px; }
+      .career-header { padding: 17px 16px 13px; }
+      .career-content { padding: 14px 16px 18px; }
+      .career-kpis { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#overview" aria-label="PL home">
+        <span class="brand-mark">PL</span>
+        <span class="brand-name">PL<span>.</span></span>
+      </a>
+      <p class="season-label">Premier League</p>
+      <nav class="nav">
+        <a class="active" href="#overview"><span class="nav-icon">◫</span>Overview</a>
+        <a href="#standings"><span class="nav-icon">☷</span>Standings</a>
+        <a href="#team-details"><span class="nav-icon">◉</span>Clubs &amp; squads</a>
+        <a href="#team-details" data-open-tab="analysis"><span class="nav-icon">⌁</span>Analysis</a>
+        <a href="#team-details" data-open-tab="stadium"><span class="nav-icon">⌂</span>Stadiums</a>
+      </nav>
+      <div class="side-spacer"></div>
+      <p class="source-note"><strong>Built for the beautiful game.</strong><br>League data and player profiles by ESPN. Refreshed from the current season feed.</p>
+    </aside>
+
+    <main class="main" id="overview">
+      <header class="topbar">
+        <div class="breadcrumb">Competitions&nbsp; / &nbsp;<strong>Premier League</strong></div>
+        <div class="top-actions">
+          <span class="live-pill"><i class="live-dot"></i><span id="feed-status">Connecting to live data</span></span>
+          <button class="refresh-button" id="refreshButton" type="button"><span aria-hidden="true">↻</span> Refresh</button>
+        </div>
+      </header>
+
+      <section class="page-heading">
+        <div>
+          <p class="eyebrow" id="seasonEyebrow">THE ENGLISH PREMIER LEAGUE</p>
+          <h1>Every point tells<br> a story.</h1>
+          <p class="heading-subtitle">The table, the teams and the details behind the season.</p>
+        </div>
+        <span class="season-chip" id="seasonChip">Current season</span>
+      </section>
+
+      <section class="kpi-grid" aria-label="League overview">
+        <article class="kpi"><p class="kpi-label">Clubs in the league</p><div class="kpi-value" id="clubsCount">— <span class="kpi-meta">teams</span></div></article>
+        <article class="kpi"><p class="kpi-label">Matches played</p><div class="kpi-value" id="matchesCount">— <span class="kpi-meta">of 380</span></div></article>
+        <article class="kpi"><p class="kpi-label">Goals scored</p><div class="kpi-value" id="goalsCount">— <span class="kpi-meta">this season</span></div></article>
+        <article class="kpi"><p class="kpi-label">Latest data update</p><div class="kpi-value" id="updatedAt" style="font-size:15px">—</div></article>
+      </section>
+
+      <section class="dashboard-grid" id="standings">
+        <article class="panel">
+          <div class="panel-heading">
+            <div><h2 class="panel-title">League standings</h2><p class="panel-caption">The complete table, sorted by points and goal difference</p></div>
+            <label class="search-wrap"><span aria-hidden="true">⌕</span><input class="search-input" id="teamSearch" type="search" placeholder="Find a club" aria-label="Find a club"></label>
+          </div>
+          <div id="standingsContent" class="loading-state" role="status">Loading current standings and match results…</div>
+        </article>
+        <div class="aside-stack">
+          <article class="panel leader-card" id="leaderCard">
+            <div class="leader-top"><p class="eyebrow">Sitting on top</p><span class="leader-star" aria-hidden="true">✳</span></div>
+            <div class="loading-state">Finding the league leader…</div>
+          </article>
+          <article class="panel fixtures-card">
+            <div class="panel-heading"><div><h2 class="panel-title">Up next</h2><p class="panel-caption">Upcoming league fixtures</p></div></div>
+            <div id="upcomingFixtures"><div class="loading-state">Loading fixtures…</div></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="team-details" aria-labelledby="teamSectionTitle">
+        <div class="section-head">
+          <div><h2 id="teamSectionTitle">Inside the club</h2><p>Squad, season performance and a closer look at home.</p></div>
+          <span class="season-chip" id="clubSeasonChip">Choose a club</span>
+        </div>
+        <article class="panel">
+          <div class="club-profile" id="clubProfile"><div class="loading-state">Club profiles will appear once the table has loaded…</div></div>
+          <div class="club-tabs" role="tablist" aria-label="Club information">
+            <button class="club-tab active" type="button" role="tab" aria-selected="true" data-tab="squad">First-team squad</button>
+            <button class="club-tab" type="button" role="tab" aria-selected="false" data-tab="analysis">Season analysis</button>
+            <button class="club-tab" type="button" role="tab" aria-selected="false" data-tab="stadium">Stadium &amp; capacity</button>
+          </div>
+          <div class="club-tab-content" id="clubTabContent"><div class="loading-state">Select a club in the standings to explore its squad, season stats and stadium.</div></div>
+        </article>
+      </section>
+      <p class="data-attribution">Current-season squads and league stats: ESPN. Current head coaches: official Premier League 2026/27 directory and manager profiles. Career totals: ESPN and Premier League official records. Portraits use available ESPN headshots or exact-name Wikipedia matches; initials are shown when no verified photo is available. Stadium imagery: Google Maps satellite view, with a link to Google Earth 3D coverage.</p>
+    </main>
+  </div>
+
+  <dialog class="profile-dialog" id="careerDialog" aria-labelledby="careerTitle">
+    <header class="career-header"><div><p class="eyebrow" id="careerEyebrow">CAREER PROFILE</p><h2 id="careerTitle">Career record</h2><p id="careerSubtitle"></p></div><button class="career-close" id="careerClose" type="button" aria-label="Close profile">×</button></header>
+    <div class="career-content" id="careerContent"></div>
+  </dialog>
+
+  <script>
+    (() => {
+      const SITE_API = "https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1";
+      const CORE_API = "https://sports.core.api.espn.com/v2/sports/soccer/leagues/eng.1";
+      const PREMIER_LEAGUE_API = "https://sdp-prem-prod.premier-league-prod.pulselive.com/api/v1";
+      const PREMIER_LEAGUE_COMPETITION_ID = "8";
+      const officialClubIds = {
+        "337": "94", "359": "3", "362": "7", "331": "36", "349": "91",
+        "388": "9", "384": "31", "368": "11", "370": "54", "306": "88",
+        "373": "40", "357": "2", "364": "14", "382": "43", "360": "1",
+        "361": "4", "393": "17", "366": "56", "367": "6", "363": "8"
+      };
+      const currentManagers = {
+        "337": { id: "66206", name: "Keith Andrews", profile: "keith-andrews" },
+        "359": { id: "51018", name: "Mikel Arteta", profile: "mikel-arteta" },
+        "360": { id: "56407", name: "Michael Carrick", profile: "michael-carrick" },
+        "393": { id: "40855", name: "Vítor Manuel de Oliveira Lopes Pereira", profile: "vitor-manuel-de-oliveira-lopes-pereira" },
+        "367": { id: "47376", name: "Roberto De Zerbi", profile: "roberto-de-zerbi" },
+        "362": { id: "37569", name: "Unai Emery", profile: "unai-emery" },
+        "357": { id: "42856", name: "Daniel Farke", profile: "daniel-farke" },
+        "384": { id: "44410", name: "Oliver Glasner", profile: "oliver-glasner" },
+        "361": { id: "38216", name: "Eddie Howe", profile: "eddie-howe" },
+        "331": { id: "53902", name: "Fabian Hürzeler", profile: "fabian-hurzeler" },
+        "364": { id: "50428", name: "Andoni Iraola", profile: "andoni-iraola" },
+        "306": { id: "50432", name: "Sergej Jakirović", profile: "sergej-jakirovic" },
+        "388": { id: "50167", name: "Frank Lampard", profile: "frank-lampard" },
+        "366": { id: "58318", name: "Régis Le Bris", profile: "regis-le-bris" },
+        "382": { id: "48549", name: "Enzo Maresca", profile: "enzo-maresca" },
+        "363": { id: "61136", name: "Calum McFarlane", profile: "calum-mcfarlane" },
+        "373": { id: "47418", name: "Kieran McKenna", profile: "kieran-mckenna" },
+        "368": { id: "85", name: "David Moyes", profile: "david-moyes" },
+        "370": { id: "41801", name: "Marco Alexandre Saraiva da Silva", profile: "marco-alexandre-saraiva-da-silva" }
+      };
+      const now = new Date();
+      const seasonYear = now.getUTCMonth() >= 6 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+      const capacityByClub = {
+        "Arsenal": 60704, "Aston Villa": 42657, "AFC Bournemouth": 11307, "Bournemouth": 11307,
+        "Brentford": 17250, "Brighton & Hove Albion": 31876, "Brighton and Hove Albion": 31876,
+        "Burnley": 21944, "Chelsea": 40341, "Crystal Palace": 25486, "Everton": 52888,
+        "Fulham": 29589, "Leeds United": 37792, "Liverpool": 61276, "Manchester City": 53400,
+        "Manchester United": 74310, "Newcastle United": 52305, "Nottingham Forest": 30445,
+        "Sunderland": 48707, "Tottenham Hotspur": 62850, "West Ham United": 62500,
+        "Wolverhampton Wanderers": 31750, "Wolves": 31750, "Coventry City": 32609, "Hull City": 25586,
+        "Ipswich Town": 30311, "Leicester City": 32259, "Southampton": 32689
+      };
+      const state = { teams: [], selectedId: null, activeTab: "squad", detailCache: new Map(), careerCache: new Map(), loading: false };
+      const standingsContent = document.getElementById("standingsContent");
+      const clubProfile = document.getElementById("clubProfile");
+      const clubTabContent = document.getElementById("clubTabContent");
+      const searchInput = document.getElementById("teamSearch");
+      const portraitCache = new Map();
+      const careerDialog = document.getElementById("careerDialog");
+      const careerContent = document.getElementById("careerContent");
+
+      function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, character => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        })[character]);
+      }
+
+      async function fetchJson(url) {
+        const response = await fetch(url, { headers: { Accept: "application/json" } });
+        if (!response.ok) throw new Error(`Data request failed (${response.status}): ${url}`);
+        return response.json();
+      }
+
+      function currentSeasonLabel() {
+        return `${seasonYear}-${String(seasonYear + 1).slice(-2)}`;
+      }
+
+      function setLoading(message) {
+        standingsContent.className = "loading-state";
+        standingsContent.textContent = message;
+        document.getElementById("feed-status").textContent = "Updating live data";
+      }
+
+      function showError(error) {
+        console.error(error);
+        standingsContent.className = "error-state";
+        standingsContent.innerHTML = `The live Premier League feed could not be loaded. Check your connection and try again. <button type="button" id="retryButton">Try again</button>`;
+        document.getElementById("retryButton").addEventListener("click", loadLeague);
+        document.getElementById("feed-status").textContent = "Feed unavailable";
+        document.getElementById("leaderCard").innerHTML = `<div class="leader-top"><p class="eyebrow">Sitting on top</p></div><p class="fixtures-empty">Leader data will appear when the league feed is available.</p>`;
+        document.getElementById("upcomingFixtures").innerHTML = `<p class="fixtures-empty">Fixture data is currently unavailable.</p>`;
+      }
+
+      function cleanRecordSummary(summary) {
+        const values = String(summary ?? "").match(/\d+/g)?.map(Number);
+        if (!values || values.length < 3) return null;
+        return { wins: values[0], draws: values[1], losses: values[2] };
+      }
+
+      function scoreOf(competitor) {
+        const raw = competitor?.score;
+        const value = raw && typeof raw === "object" ? raw.value ?? raw.displayValue : raw;
+        if (value === null || value === undefined || value === "") return null;
+        const score = Number(value);
+        return Number.isFinite(score) ? score : null;
+      }
+
+      function calculateTeam(row, schedule) {
+        const record = { played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, form: [], fixtures: [] };
+        const events = schedule.events ?? [];
+        for (const event of events) {
+          const competition = event.competitions?.[0];
+          const competitors = competition?.competitors ?? [];
+          const ours = competitors.find(item => String(item.id ?? item.team?.id) === row.id);
+          if (!ours) continue;
+          const opposition = competitors.find(item => item !== ours);
+          const date = competition?.date ?? event.date;
+          const ownScore = scoreOf(ours);
+          const theirScore = scoreOf(opposition);
+          const completed = competition?.status?.type?.completed === true ||
+            competition?.status?.type?.state === "post";
+          if (completed && ownScore !== null && theirScore !== null) {
+            record.played++;
+            record.gf += ownScore;
+            record.ga += theirScore;
+            if (ownScore > theirScore) { record.wins++; record.form.push("W"); }
+            else if (ownScore === theirScore) { record.draws++; record.form.push("D"); }
+            else { record.losses++; record.form.push("L"); }
+          }
+          if (opposition) {
+            record.fixtures.push({
+              id: String(event.id ?? competition?.id ?? ""),
+              date,
+              completed,
+              teamId: String(opposition.id ?? opposition.team?.id ?? ""),
+              teamName: opposition.team?.displayName ?? opposition.team?.name ?? "Opponent",
+              teamAbbreviation: opposition.team?.abbreviation ?? "",
+              teamLogo: opposition.team?.logo ?? opposition.team?.logos?.[0]?.href ?? "",
+              home: ours.homeAway === "home",
+              ownScore,
+              theirScore
+            });
+          }
+        }
+        const fallback = cleanRecordSummary(schedule.team?.recordSummary ?? row.recordSummary);
+        if (record.played === 0 && fallback) Object.assign(record, fallback);
+        row.played = record.played;
+        row.wins = record.wins;
+        row.draws = record.draws;
+        row.losses = record.losses;
+        row.gf = record.gf;
+        row.ga = record.ga;
+        row.gd = record.gf - record.ga;
+        row.points = record.wins * 3 + record.draws;
+        row.form = record.form.slice(-5);
+        row.fixtures = record.fixtures;
+        row.serverRank = Number(String(schedule.team?.standingSummary ?? "").match(/^(\d+)/)?.[1] ?? 0);
+        row.updated = schedule.timestamp ?? "";
+        row.seasonLabel = schedule.season?.displayName ?? "";
+      }
+
+      function sortedTeams() {
+        return [...state.teams].sort((a, b) =>
+          b.points - a.points || b.gd - a.gd || b.gf - a.gf || a.name.localeCompare(b.name)
+        );
+      }
+
+      function formatNumber(value) {
+        return Number(value ?? 0).toLocaleString("en-GB");
+      }
+
+      function clubImage(team, extraClass = "") {
+        return `<img class="${extraClass}" src="${escapeHtml(team.logo)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
+      }
+
+      function renderTable() {
+        const sorted = sortedTeams();
+        const filter = searchInput.value.trim().toLowerCase();
+        const visible = sorted.filter(team => team.name.toLowerCase().includes(filter) || team.abbreviation.toLowerCase().includes(filter));
+        const rows = visible.map(team => {
+          const rank = sorted.indexOf(team) + 1;
+          const goalDiff = team.gd > 0 ? `+${team.gd}` : team.gd;
+          const form = team.form.length ? team.form.map(result => `<span class="form-dot form-${result.toLowerCase()}">${result}</span>`).join("") : `<span class="team-abbr">—</span>`;
+          const rankClass = rank <= 4 ? "champions" : rank === 5 ? "europe" : rank > sorted.length - 3 ? "relegation" : "";
+          return `<tr data-team-id="${escapeHtml(team.id)}" class="${team.id === state.selectedId ? "selected" : ""}" tabindex="0" aria-label="View ${escapeHtml(team.name)} profile">
+            <td class="position"><span class="position-rank ${rankClass}">${rank}</span></td>
+            <td><div class="team-cell">${clubImage(team)}<button class="profile-open" type="button" data-profile-type="team" data-profile-id="${escapeHtml(team.id)}">${escapeHtml(team.name)}</button><span class="team-abbr">${escapeHtml(team.abbreviation)}</span></div></td>
+            <td>${team.played}</td><td>${team.wins}</td><td>${team.draws}</td><td>${team.losses}</td>
+            <td>${team.gf}</td><td>${team.ga}</td><td class="${team.gd > 0 ? "positive" : team.gd < 0 ? "negative" : ""}">${goalDiff}</td>
+            <td class="points">${team.points}</td><td><div class="form-cell" aria-label="Recent form">${form}</div></td>
+          </tr>`;
+        }).join("");
+        const totalGoals = state.teams.reduce((sum, team) => sum + team.gf, 0);
+        const played = state.teams.reduce((sum, team) => sum + team.played, 0) / 2;
+        document.getElementById("clubsCount").innerHTML = `${state.teams.length}<span class="kpi-meta">teams</span>`;
+        document.getElementById("matchesCount").innerHTML = `${Math.floor(played)}<span class="kpi-meta">played</span>`;
+        document.getElementById("goalsCount").innerHTML = `${formatNumber(totalGoals)}<span class="kpi-meta">this season</span>`;
+        if (rows) {
+          standingsContent.className = "";
+          standingsContent.innerHTML = `<div class="table-wrap"><table class="standings-table">
+            <thead><tr><th title="Position">#</th><th>Club</th><th title="Played">P</th><th title="Won">W</th><th title="Drawn">D</th><th title="Lost">L</th><th title="Goals for">GF</th><th title="Goals against">GA</th><th title="Goal difference">GD</th><th title="Points">PTS</th><th>Form</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table></div><div class="table-footer"><span>Click a club to open its full profile</span><div class="legend"><span><i></i>Champions League</span><span><i></i>Europa League</span><span><i></i>Relegation zone</span></div></div>`;
+          standingsContent.querySelectorAll("tbody tr").forEach(row => {
+            row.addEventListener("click", event => {
+              if (event.target.closest("[data-profile-type]")) return;
+              selectTeam(row.dataset.teamId);
+              openCareerProfile("team", row.dataset.teamId);
+            });
+            row.addEventListener("keydown", event => {
+              if (event.target.closest("[data-profile-type]")) return;
+              if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectTeam(row.dataset.teamId); openCareerProfile("team", row.dataset.teamId); }
+            });
+          });
+        } else {
+          standingsContent.className = "empty-state";
+          standingsContent.textContent = "No clubs match your search.";
+        }
+        renderLeader(sorted[0]);
+        renderFixtures();
+      }
+
+      function renderLeader(team) {
+        if (!team) return;
+        document.getElementById("leaderCard").innerHTML = `<div class="leader-top"><p class="eyebrow">Sitting on top</p><span class="leader-star" aria-hidden="true">✳</span></div>
+          <div class="leader-club">${clubImage(team)}<div><h3>${escapeHtml(team.name)}</h3><p>${team.played} played · ${team.wins} wins</p></div></div>
+          <div class="leader-stats"><div class="leader-stat"><strong>${team.points}</strong><span>points</span></div><div class="leader-stat"><strong>${team.gd > 0 ? "+" : ""}${team.gd}</strong><span>goal difference</span></div><div class="leader-stat"><strong>${team.gf}</strong><span>goals scored</span></div></div>`;
+        document.getElementById("leaderCard").style.cursor = "pointer";
+        document.getElementById("leaderCard").onclick = () => {
+          selectTeam(team.id);
+          openCareerProfile("team", team.id);
+        };
+      }
+
+      function formatFixtureDate(date) {
+        if (!date) return "TBD";
+        return new Date(date).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+      }
+
+      function renderFixtures() {
+        const nowTime = Date.now();
+        const seen = new Set();
+        const upcoming = [];
+        for (const team of state.teams) {
+          for (const fixture of team.fixtures) {
+            const time = Date.parse(fixture.date);
+            if (fixture.completed || !Number.isFinite(time) || time < nowTime) continue;
+            const key = fixture.id || [team.id, fixture.teamId, fixture.date].sort().join("-");
+            if (seen.has(key)) continue;
+            seen.add(key);
+            upcoming.push({ ...fixture, homeTeam: fixture.home ? team : state.teams.find(item => item.id === fixture.teamId), awayTeam: fixture.home ? state.teams.find(item => item.id === fixture.teamId) : team });
+          }
+        }
+        upcoming.sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
+        const cards = upcoming.slice(0, 3).map(fixture => `<div class="fixture-item">
+          <div class="fixture-team">${clubImage(fixture.homeTeam ?? { logo: fixture.home ? state.teams.find(team => team.id === fixture.teamId)?.logo : "" })}<span>${escapeHtml(fixture.homeTeam?.abbreviation ?? "TBD")}</span></div>
+          <div class="fixture-mid">${formatFixtureDate(fixture.date)}<br><strong>vs</strong></div>
+          <div class="fixture-team">${clubImage(fixture.awayTeam ?? { logo: fixture.home ? "" : state.teams.find(team => team.id === fixture.teamId)?.logo })}<span>${escapeHtml(fixture.awayTeam?.abbreviation ?? "TBD")}</span></div>
+        </div>`).join("");
+        document.getElementById("upcomingFixtures").innerHTML = cards || `<p class="fixtures-empty">No future fixtures are listed in the current feed.</p>`;
+      }
+
+      function allStats(payload) {
+        const result = new Map();
+        for (const category of payload?.splits?.categories ?? []) {
+          for (const stat of category.stats ?? []) {
+            const numeric = Number(stat.value ?? stat.displayValue);
+            result.set(stat.name, { value: Number.isFinite(numeric) ? numeric : null, display: stat.displayValue ?? stat.value, label: stat.displayName });
+          }
+        }
+        return result;
+      }
+
+      function displayStat(stats, key) {
+        const stat = stats.get(key);
+        return stat?.display ?? (stat?.value !== null && stat?.value !== undefined ? stat.value : "—");
+      }
+
+      function positionLabel(position) {
+        return position?.displayName ?? position?.name ?? position?.abbreviation ?? "Player";
+      }
+
+      function playerStat(athlete, statName) {
+        const categories = athlete.statistics?.splits?.categories ?? [];
+        const stat = categories.flatMap(category => category.stats ?? []).find(item => item.name === statName);
+        return stat?.displayValue ?? stat?.value ?? null;
+      }
+
+      function normalizePersonName(value) {
+        return String(value ?? "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^\p{L}\p{N} ]/gu, " ").replace(/\s+/g, " ").trim().toLowerCase();
+      }
+
+      function wikipediaPortrait(name) {
+        const key = normalizePersonName(name);
+        if (!key) return Promise.resolve(null);
+        if (portraitCache.has(key)) return portraitCache.get(key);
+        const request = fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name.trim().replace(/\s+/g, "_"))}`, {
+          headers: { Accept: "application/json" }
+        }).then(response => {
+          if (!response.ok) return null;
+          return response.json();
+        }).then(article => {
+          if (!article?.title || normalizePersonName(article.title) !== key) return null;
+          return article.thumbnail?.source ?? article.originalimage?.source ?? null;
+        }).catch(error => {
+          console.warn(`Portrait lookup unavailable for ${name}:`, error);
+          return null;
+        });
+        portraitCache.set(key, request);
+        return request;
+      }
+
+      async function addPlayerPortraits(athletes, teamId) {
+        let next = 0;
+        const workers = Array.from({ length: Math.min(5, athletes.length) }, async () => {
+          while (next < athletes.length) {
+            const athlete = athletes[next++];
+            const name = athlete.displayName ?? athlete.fullName ?? "Player";
+            if (athlete.headshot?.href) {
+              setPlayerPortrait(teamId, athlete, athlete.headshot.href);
+              continue;
+            }
+            const imageUrl = await wikipediaPortrait(name);
+            if (imageUrl) setPlayerPortrait(teamId, athlete, imageUrl);
+          }
+        });
+        await Promise.all(workers);
+      }
+
+      function setPlayerPortrait(teamId, athlete, imageUrl) {
+        if (state.selectedId !== teamId || state.activeTab !== "squad") return;
+        const photo = document.getElementById(`player-photo-${encodeURIComponent(athlete.id)}`);
+        if (!photo) return;
+        const image = document.createElement("img");
+        image.src = imageUrl;
+        image.alt = athlete.displayName ?? athlete.fullName ?? "Player portrait";
+        image.loading = "lazy";
+        image.referrerPolicy = "no-referrer";
+        image.onerror = () => {
+          image.remove();
+          photo.dataset.missing = "true";
+        };
+        image.onload = () => { delete photo.dataset.missing; };
+        photo.dataset.missing = "false";
+        photo.replaceChildren(image);
+      }
+
+      function renderSquad(payload, teamId) {
+        const athletes = payload.athletes ?? [];
+        if (!athletes.length) {
+          clubTabContent.innerHTML = `<div class="empty-state">The current-season squad list is not available for this club in the feed.</div>`;
+          return;
+        }
+        const ordered = [...athletes].sort((a, b) =>
+          (a.position?.name ?? "").localeCompare(b.position?.name ?? "") || (a.displayName ?? "").localeCompare(b.displayName ?? "")
+        );
+        clubTabContent.innerHTML = `<p class="profile-note">${ordered.length} listed first-team players · current-season Premier League appearances, goals and assists where available</p>
+          <div class="squad-grid">${ordered.map(athlete => {
+            const appearances = playerStat(athlete, "appearances");
+            const goals = playerStat(athlete, "totalGoals");
+            const assists = playerStat(athlete, "goalAssists");
+            const stats = [
+              appearances !== null ? `${escapeHtml(appearances)} app` : "",
+              goals !== null ? `${escapeHtml(goals)} gls` : "",
+              assists !== null ? `${escapeHtml(assists)} ast` : ""
+            ].filter(Boolean).join(" · ");
+            const name = athlete.displayName ?? athlete.fullName ?? "Player";
+            const initials = name.split(/\s+/).map(part => part[0]).slice(0, 2).join("").toUpperCase();
+            return `<article class="player-card"><div class="player-photo" id="player-photo-${encodeURIComponent(athlete.id)}" data-initials="${escapeHtml(initials)}" data-missing="true"></div>
+              <div class="player-info"><strong><button class="profile-open" type="button" data-profile-type="player" data-profile-id="${escapeHtml(athlete.id)}" data-team-id="${escapeHtml(teamId)}">${escapeHtml(athlete.displayName ?? athlete.fullName ?? "Player")}</button></strong>
+                <span>${escapeHtml(positionLabel(athlete.position))}${athlete.jersey ? ` · #${escapeHtml(athlete.jersey)}` : ""}</span>
+                <span>${athlete.age ? `${escapeHtml(athlete.age)} yrs` : "Age unavailable"}${athlete.citizenship ? ` · ${escapeHtml(athlete.citizenship)}` : ""}</span>
+                ${stats ? `<span class="player-stats">${stats}</span>` : ""}
+              </div></article>`;
+          }).join("")}</div>`;
+        addPlayerPortraits(ordered, teamId);
+      }
+
+      function categoryValues(stats, keys) {
+        return keys.map(([key, label]) => {
+          const stat = stats.get(key);
+          return stat && stat.value !== null ? { label, value: stat.value, display: stat.display } : null;
+        }).filter(Boolean);
+      }
+
+      function statsGroup(title, entries) {
+        if (!entries.length) return `<section class="stats-group"><h3>${escapeHtml(title)}</h3><p class="profile-note">No statistics available in the current season feed.</p></section>`;
+        const max = Math.max(...entries.map(entry => entry.value), 1);
+        return `<section class="stats-group"><h3>${escapeHtml(title)}</h3>${entries.map(entry => `<div class="stat-row"><span>${escapeHtml(entry.label)}</span><strong>${escapeHtml(entry.display)}</strong><div class="stat-track"><span class="stat-fill" style="width:${Math.max(3, Math.min(100, entry.value / max * 100))}%"></span></div></div>`).join("")}</section>`;
+      }
+
+      function renderAnalysis(payload) {
+        const stats = allStats(payload);
+        const attacks = categoryValues(stats, [
+          ["totalGoals", "Goals scored"], ["goalAssists", "Assists"], ["totalShots", "Total shots"], ["shotsOnTarget", "Shots on target"]
+        ]);
+        const defence = categoryValues(stats, [
+          ["goalsConceded", "Goals conceded"], ["cleanSheets", "Clean sheets"], ["effectiveTackles", "Tackles won"], ["interceptions", "Interceptions"]
+        ]);
+        const control = categoryValues(stats, [
+          ["possessionPct", "Possession"], ["wonCorners", "Corners won"], ["foulsCommitted", "Fouls committed"], ["yellowCards", "Yellow cards"]
+        ]);
+        clubTabContent.innerHTML = `<p class="profile-note">Season-to-date team metrics from ESPN. No projections or substitute values are shown.</p>
+          <div class="stats-layout">${statsGroup("Attack", attacks)}${statsGroup("Defence", defence)}${statsGroup("Control & discipline", control)}
+          ${statsGroup("Season record", categoryValues(stats, [["appearances", "Appearances"], ["wins", "Wins"], ["draws", "Draws"], ["losses", "Losses"], ["goalDifference", "Goal difference"]]))}</div>`;
+      }
+
+      function renderStadium(team, venue, coach) {
+        const name = venue?.fullName ?? team.name;
+        const city = venue?.address?.city ?? team.location ?? "England";
+        const capacity = capacityByClub[team.name] ?? capacityByClub[team.location] ?? null;
+        const place = `${name}, ${city}, England`;
+        const mapsUrl = `https://maps.google.com/maps?q=${encodeURIComponent(place)}&t=k&z=17&output=embed`;
+        const earthUrl = `https://earth.google.com/web/search/${encodeURIComponent(place)}`;
+        const coachName = coach?.name ?? "No current listing in the official PL manager directory";
+        clubTabContent.innerHTML = `<div class="venue-layout">
+          <div class="stadium-map"><iframe title="Satellite map showing ${escapeHtml(name)}" src="${escapeHtml(mapsUrl)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe><div class="map-credit">Real satellite map · powered by Google Maps<span>Map imagery © Google</span></div></div>
+          <div class="venue-details"><p class="eyebrow">HOME GROUND</p><h3>${escapeHtml(name)}</h3><p class="venue-city">${escapeHtml(city)}, England</p>
+            <div class="capacity"><strong>${capacity ? formatNumber(capacity) : "—"}</strong><span>capacity${capacity ? "" : " · not listed"}</span></div>
+            <p class="venue-description">Open this ground in Google Earth for an interactive 3D satellite view when imagery is available in your area.</p>
+            <a class="earth-link" href="${escapeHtml(earthUrl)}" target="_blank" rel="noopener noreferrer">Explore in Google Earth <span aria-hidden="true">↗</span></a>
+            <div class="team-staff"><span class="manager-portrait"><img src="" alt="" id="venueManagerPhoto"><span class="manager-initials" id="venueManagerInitials"></span></span><div><span>HEAD COACH · ${escapeHtml(currentSeasonLabel())} SEASON</span>${coach ? `<button class="profile-open" type="button" data-profile-type="manager" data-profile-id="${escapeHtml(coach.id)}"><strong>${escapeHtml(coachName)}</strong></button>` : `<strong>${escapeHtml(coachName)}</strong>`}</div></div>
+          </div></div>`;
+        updateManagerPhoto(coach, "venueManagerPhoto", "venueManagerInitials");
+      }
+
+      function setTab(tab) {
+        state.activeTab = tab;
+        document.querySelectorAll(".club-tab").forEach(button => {
+          const active = button.dataset.tab === tab;
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-selected", String(active));
+        });
+        if (state.selectedId) loadTeamDetails(state.selectedId);
+      }
+
+      async function loadTeamDetails(teamId, force = false) {
+        const team = state.teams.find(item => item.id === teamId);
+        if (!team) return;
+        state.selectedId = teamId;
+        state.detailCache.set(teamId, state.detailCache.get(teamId) ?? {});
+        const cached = state.detailCache.get(teamId);
+        const manager = currentManagers[teamId] ?? null;
+        cached.coach = manager;
+        renderTable();
+        document.getElementById("clubSeasonChip").textContent = team.seasonLabel || currentSeasonLabel();
+        clubProfile.innerHTML = `<div class="profile-club"><span class="profile-logo">${clubImage(team)}</span><div><p class="eyebrow">CLUB PROFILE · ${escapeHtml(team.abbreviation)}</p><h3><button class="profile-open profile-title-button" type="button" data-profile-type="team" data-profile-id="${escapeHtml(team.id)}">${escapeHtml(team.name)}</button></h3><p>${team.played} played · ${team.points} pts · ${team.gd > 0 ? "+" : ""}${team.gd} goal difference</p></div></div>
+          <div class="manager-card"><span class="manager-portrait"><img src="" alt="" id="managerPhoto"><span class="manager-initials" id="managerInitials"></span></span><div><span class="manager-label">${escapeHtml(currentSeasonLabel())} season · official PL head coach</span>${manager ? `<button class="profile-open" id="managerName" type="button" data-profile-type="manager" data-profile-id="${escapeHtml(manager.id)}">${escapeHtml(manager.name)}</button>` : `<strong id="managerName">No current listing in the official PL manager directory</strong>`}</div></div>`;
+        clubTabContent.className = "club-tab-content loading-state";
+        clubTabContent.textContent = state.activeTab === "squad" ? "Loading player profiles…" : state.activeTab === "analysis" ? "Loading current-season team statistics…" : "Loading venue details…";
+        if (cached.coach && manager) updateManager(manager);
+        try {
+          if (!cached.venue || force) {
+            const teamCore = await fetchJson(`${CORE_API}/seasons/${seasonYear}/teams/${encodeURIComponent(team.id)}?lang=en&region=us`);
+            cached.venue = teamCore.venue;
+          }
+          if (state.selectedId === teamId && manager) updateManager(manager);
+          if (state.selectedId !== teamId) return;
+          if (state.activeTab === "squad") {
+            if (!cached.roster || force) cached.roster = await fetchJson(`${SITE_API}/teams/${encodeURIComponent(team.id)}/roster?season=${seasonYear}&seasontype=1`);
+            if (state.selectedId === teamId && state.activeTab === "squad") renderSquad(cached.roster, teamId);
+          } else if (state.activeTab === "analysis") {
+            if (!cached.statistics || force) cached.statistics = await fetchJson(`https://sports.core.api.espn.com/v2/sports/soccer/leagues/eng.1/seasons/${seasonYear}/types/1/teams/${encodeURIComponent(team.id)}/statistics/0?lang=en&region=us`);
+            if (state.selectedId === teamId && state.activeTab === "analysis") renderAnalysis(cached.statistics);
+          } else if (state.activeTab === "stadium" && state.selectedId === teamId) {
+            renderStadium(team, cached.venue, cached.coach);
+          }
+          if (state.selectedId === teamId) clubTabContent.className = "club-tab-content";
+        } catch (error) {
+          console.error(error);
+          if (state.selectedId === teamId) {
+            clubTabContent.className = "club-tab-content error-state";
+            clubTabContent.textContent = "This club detail could not be loaded from the live feed. Please try again.";
+            const retry = document.createElement("button");
+            retry.type = "button";
+            retry.textContent = "Try again";
+            retry.addEventListener("click", () => loadTeamDetails(teamId, true));
+            clubTabContent.append(" ", retry);
+          }
+        }
+      }
+
+      function collectStats(data, output = new Map(), depth = 0, parentKey = "") {
+        if (!data || typeof data !== "object" || depth > 7) return output;
+        if (Array.isArray(data)) {
+          data.forEach(item => collectStats(item, output, depth + 1, parentKey));
+          return output;
+        }
+        if (typeof data.name === "string" && ("value" in data || "displayValue" in data)) {
+          const value = Number(data.value);
+          output.set(data.name, {
+            value: Number.isFinite(value) ? value : null,
+            display: data.displayValue ?? data.value
+          });
+        }
+        for (const [key, value] of Object.entries(data)) {
+          const isStatValue = typeof value === "number" || (typeof value === "string" && value.trim() !== "");
+          if (["stats", "statistics"].includes(parentKey.toLowerCase()) && isStatValue) {
+            const numericValue = Number(value);
+            output.set(key, { value: Number.isFinite(numericValue) ? numericValue : null, display: value });
+          } else {
+            collectStats(value, output, depth + 1, key);
+          }
+        }
+        return output;
+      }
+
+      function careerValue(stats, keys) {
+        for (const key of keys) {
+          const item = stats.get(key);
+          if (item && item.display !== null && item.display !== undefined) return String(item.display);
+        }
+        return "—";
+      }
+
+      function careerKpis(stats, fields) {
+        return `<div class="career-kpis">${fields.map(([label, keys]) => `<div class="career-kpi"><strong>${escapeHtml(careerValue(stats, keys))}</strong><span>${escapeHtml(label)}</span></div>`).join("")}</div>`;
+      }
+
+      function careerLink(url, label) {
+        return `<a class="career-source" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)} ↗</a>`;
+      }
+
+      function careerStatsTimeline(log) {
+        const refs = (log?.items ?? []).map(item => item?.$ref).filter(Boolean);
+        const seen = new Set();
+        const seasons = [];
+        for (const ref of refs) {
+          const match = ref.match(/leagues\/([^/]+)\/seasons\/([^/?]+)/i);
+          if (!match) continue;
+          const seasonKey = `${match[1]}:${match[2]}`;
+          if (seen.has(seasonKey)) continue;
+          seen.add(seasonKey);
+          const start = Number(match[2]);
+          if (!Number.isFinite(start)) continue;
+          const competition = match[1];
+          const labels = { "eng.1": "Premier League", "esp.1": "La Liga", "ita.1": "Serie A", "ger.1": "Bundesliga", "fra.1": "Ligue 1", "uefa.champions": "Champions League", "uefa.europa": "Europa League" };
+          seasons.push({ start, season: `${start}/${String(start + 1).slice(-2)}`, competition: labels[competition] ?? competition });
+        }
+        seasons.sort((a, b) => b.start - a.start || a.competition.localeCompare(b.competition));
+        if (!seasons.length) return `<p class="career-text">Season-by-season entries are not available in the career log.</p>`;
+        return `<p class="career-text">${seasons.length} season/competition entries are available. Career log entries are shown newest first; season detail availability depends on ESPN coverage.</p>
+          <div class="career-table-wrap"><table class="career-table"><thead><tr><th>Season</th><th>Competition</th></tr></thead><tbody>${seasons.slice(0, 30).map(item => `<tr><td>${escapeHtml(item.season)}</td><td>${escapeHtml(item.competition)}</td></tr>`).join("")}</tbody></table></div>`;
+      }
+
+      function renderPlayerCareer(athlete, statsPayload, careerLog, teamId) {
+        const stats = collectStats(statsPayload);
+        const team = state.teams.find(item => item.id === teamId);
+        const currentRoster = state.detailCache.get(teamId)?.roster?.athletes ?? [];
+        const current = currentRoster.find(item => String(item.id) === String(athlete.id)) ?? athlete;
+        const currentStats = new Map([
+          ["appearances", { display: playerStat(current, "appearances") }],
+          ["totalGoals", { display: playerStat(current, "totalGoals") }],
+          ["goalAssists", { display: playerStat(current, "goalAssists") }],
+          ["yellowCards", { display: playerStat(current, "yellowCards") }]
+        ]);
+        const age = athlete.age ? `${athlete.age} years old` : "Age not available";
+        const nationality = athlete.citizenship ? ` · ${athlete.citizenship}` : "";
+        const portrait = athlete.headshot?.href ? `<img class="career-player-photo" src="${escapeHtml(athlete.headshot.href)}" alt="${escapeHtml(athlete.displayName ?? "Player")}">` : "";
+        careerContent.innerHTML = `${portrait}<p class="career-text">${escapeHtml(positionLabel(athlete.position))} · ${escapeHtml(age)}${escapeHtml(nationality)}${team ? ` · Current squad: ${escapeHtml(team.name)}` : ""}</p>
+          <h3 class="career-subhead">Career totals · ESPN all-competition record</h3>
+          ${careerKpis(stats, [["Appearances", ["appearances", "gamesPlayed"]], ["Goals", ["totalGoals", "goals"]], ["Assists", ["goalAssists", "assists"]], ["Yellow cards", ["yellowCards"]]])}
+          <h3 class="career-subhead">${escapeHtml(currentSeasonLabel())} Premier League season</h3>
+          ${careerKpis(currentStats, [["Appearances", ["appearances"]], ["Goals", ["totalGoals"]], ["Assists", ["goalAssists"]], ["Yellow cards", ["yellowCards"]]])}
+          <h3 class="career-subhead">Career season and competition log</h3>${careerStatsTimeline(careerLog)}
+          ${careerLink(athlete.links?.find(link => link.rel?.includes("playercard"))?.href ?? `https://www.espn.com/soccer/player/_/id/${encodeURIComponent(athlete.id)}`, "View ESPN player profile")}`;
+      }
+
+      function renderManagerCareer(manager, profile) {
+        const career = profile.career ?? {};
+        const seasons = Array.isArray(career.seasonsInPremierLeague) ? career.seasonsInPremierLeague : [];
+        const clubSeasons = Array.isArray(career.seasonsAtCurrentTeam) ? career.seasonsAtCurrentTeam : [];
+        const joined = profile.dates?.joinedClub;
+        const country = profile.country?.country;
+        const club = profile.currentTeam?.name ?? "Current club details are not available from the profile feed.";
+        const seasonRows = seasons.length
+          ? `<div class="career-table-wrap"><table class="career-table"><thead><tr><th>Premier League season</th></tr></thead><tbody>${seasons.map(year => `<tr><td>${escapeHtml(year)}/${escapeHtml(String(Number(year) + 1).slice(-2))}</td></tr>`).join("")}</tbody></table></div>`
+          : `<p class="career-text">Premier League season-by-season history is not listed in this profile.</p>`;
+        careerContent.innerHTML = `<div class="manager-card" style="margin-bottom:12px"><span class="manager-portrait"><img src="" alt="" id="careerManagerPhoto"><span class="manager-initials" id="careerManagerInitials"></span></span><div><span class="manager-label">Current season head coach</span><strong>${escapeHtml(manager.name)}</strong><span>${escapeHtml(club)}${country ? ` · ${escapeHtml(country)}` : ""}</span></div></div>
+          <h3 class="career-subhead">Premier League career</h3>${careerKpis(new Map([["Seasons", { display: seasons.length || "—" }], ["Seasons at current club", { display: clubSeasons.length || "—" }], ["Joined current club", { display: joined ?? "—" }], ["Nationality", { display: country ?? "—" }]]), [["Premier League seasons", ["Seasons"]], ["Seasons at current club", ["Seasons at current club"]], ["Joined current club", ["Joined current club"]], ["Nationality", ["Nationality"]]])}
+          <h3 class="career-subhead">Season history recorded in the official profile</h3>${seasonRows}
+          <p class="career-text">The official manager profile does not provide individual match results in this feed; team totals are not presented as a personal manager record.</p>
+          ${careerLink("https://www.premierleague.com/en/managers", "Premier League managers directory")}`;
+      }
+
+      function renderTeamCareer(team, statsPayload) {
+        const stats = collectStats(statsPayload);
+        careerContent.innerHTML = `<p class="career-text">Current ${escapeHtml(currentSeasonLabel())} league record: ${team.played} played, ${team.wins} wins, ${team.draws} draws, ${team.losses} losses, ${team.gf} goals scored, ${team.ga} conceded and ${team.points} points.</p>
+          <h3 class="career-subhead">All-time Premier League club totals</h3>
+          ${careerKpis(stats, [["Matches played", ["gamesPlayed", "appearances"]], ["Goals scored", ["goals", "totalGoals"]], ["Goals conceded", ["goalsConceded"]], ["Clean sheets", ["cleanSheets", "cleanSheet"]]])}
+          <p class="career-text">Historical totals are provided by the Premier League. Unavailable fields are shown as a dash rather than estimated.</p>
+          ${careerLink("https://www.premierleague.com/en/clubs", "Premier League clubs directory")}`;
+      }
+
+      let activeCareerKey = "";
+      async function openCareerProfile(type, id, teamId = "") {
+        const key = `${type}:${id}:${teamId}`;
+        activeCareerKey = key;
+        careerDialog.showModal();
+        document.getElementById("careerEyebrow").textContent = type === "manager" ? "HEAD COACH · PREMIER LEAGUE CAREER" : type === "player" ? "PLAYER · CAREER PROFILE" : "CLUB · PREMIER LEAGUE HISTORY";
+        document.getElementById("careerSubtitle").textContent = "Official and ESPN career information; unavailable figures are not estimated.";
+        careerContent.className = "career-content loading-state";
+        careerContent.textContent = "Loading career record…";
+        try {
+          let cached = state.careerCache.get(key);
+          if (!cached) {
+            if (type === "player") {
+              const roster = state.detailCache.get(teamId)?.roster;
+              const athlete = roster?.athletes?.find(item => String(item.id) === String(id));
+              if (!athlete) throw new Error(`Player ${id} is not present in the loaded squad.`);
+              const root = "https://sports.core.api.espn.com/v2/sports/soccer";
+              const [stats, log] = await Promise.all([
+                fetchJson(`${root}/athletes/${encodeURIComponent(id)}/statistics?lang=en&region=us`),
+                fetchJson(`${root}/leagues/all/athletes/${encodeURIComponent(id)}/statisticslog?lang=en&region=us`)
+              ]);
+              cached = { athlete, stats, log };
+            } else if (type === "manager") {
+              const manager = Object.values(currentManagers).find(item => item.id === String(id));
+              if (!manager) throw new Error(`Manager ${id} is not listed in the official current-season directory.`);
+              const profile = await fetchJson(`${PREMIER_LEAGUE_API}/managers/${encodeURIComponent(id)}`);
+              cached = { manager, profile };
+            } else if (type === "team") {
+              const team = state.teams.find(item => item.id === String(id));
+              const officialId = officialClubIds[String(id)];
+              if (!team || !officialId) throw new Error(`No official Premier League club ID is mapped for club ${id}.`);
+              const stats = await fetchJson(`${PREMIER_LEAGUE_API}/competitions/${PREMIER_LEAGUE_COMPETITION_ID}/teams/${encodeURIComponent(officialId)}/stats`);
+              cached = { team, stats };
+            } else {
+              throw new Error(`Unknown career profile type: ${type}`);
+            }
+            state.careerCache.set(key, cached);
+          }
+          if (activeCareerKey !== key || !careerDialog.open) return;
+          document.getElementById("careerTitle").textContent = type === "manager" ? cached.manager.name : type === "player" ? cached.athlete.displayName ?? cached.athlete.fullName ?? "Player profile" : cached.team.name;
+          if (type === "player") renderPlayerCareer(cached.athlete, cached.stats, cached.log, teamId);
+          if (type === "manager") {
+            renderManagerCareer(cached.manager, cached.profile);
+            updateManagerPhoto({ ...cached.manager, displayName: cached.manager.name }, "careerManagerPhoto", "careerManagerInitials");
+          }
+          if (type === "team") renderTeamCareer(cached.team, cached.stats);
+          careerContent.className = "career-content";
+        } catch (error) {
+          console.error("Could not load career profile:", error);
+          if (activeCareerKey === key && careerDialog.open) {
+            careerContent.className = "career-content error-state";
+            careerContent.textContent = "The career record could not be loaded from its data source. Close this profile and try again later.";
+          }
+        }
+      }
+
+      function updateManager(coach) {
+        if (!coach) return;
+        updateManagerPhoto({ ...coach, displayName: coach.name }, "managerPhoto", "managerInitials");
+      }
+
+      function updateManagerPhoto(coach, photoId, initialsId) {
+        const name = (coach?.displayName ?? coach?.fullName ?? coach?.name ?? [coach?.firstName, coach?.lastName].filter(Boolean).join(" ")) || "";
+        const photo = document.getElementById(photoId);
+        const initials = document.getElementById(initialsId);
+        if (!photo) return;
+        if (initials) initials.textContent = (name || "Staff").split(/\s+/).map(part => part[0]).slice(0, 2).join("").toUpperCase();
+        photo.style.display = "none";
+        const showPortrait = imageUrl => {
+          if (!imageUrl || !photo.isConnected) return;
+          photo.onload = () => { photo.style.display = ""; };
+          photo.onerror = () => { photo.style.display = "none"; };
+          photo.src = imageUrl;
+          photo.alt = name || "Staff portrait";
+        };
+        if (coach?.headshot?.href) {
+          showPortrait(coach.headshot.href);
+        } else if (name) {
+          wikipediaPortrait(name).then(showPortrait);
+        }
+      }
+
+      function selectTeam(teamId) {
+        if (!teamId) return;
+        loadTeamDetails(String(teamId));
+        if (window.matchMedia("(max-width: 620px)").matches) document.getElementById("team-details").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      async function loadLeague() {
+        if (state.loading) return;
+        state.loading = true;
+        setLoading("Loading current standings and match results…");
+        try {
+          const payload = await fetchJson(`${SITE_API}/teams?season=${seasonYear}&seasontype=1`);
+          const entries = payload.sports?.[0]?.leagues?.[0]?.teams ?? [];
+          const teams = entries.map(entry => entry.team).filter(team => team?.id).map(team => ({
+            id: String(team.id),
+            name: team.displayName ?? team.name ?? "Club",
+            location: team.location ?? "",
+            abbreviation: team.abbreviation ?? "",
+            logo: team.logos?.[0]?.href ?? `https://a.espncdn.com/i/teamlogos/soccer/500/${encodeURIComponent(team.id)}.png`,
+            color: team.color ?? "84917f",
+            recordSummary: team.record?.items?.[0]?.summary ?? "",
+            played: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0, gd: 0, points: 0, form: [], fixtures: [], serverRank: 0, updated: "", seasonLabel: ""
+          }));
+          if (!teams.length) throw new Error("The league clubs list was empty.");
+          const schedules = await Promise.all(teams.map(team => fetchJson(`${SITE_API}/teams/${encodeURIComponent(team.id)}/schedule?season=${seasonYear}&seasontype=1`)));
+          teams.forEach((team, index) => calculateTeam(team, schedules[index]));
+          state.teams = teams;
+          state.loading = false;
+          document.getElementById("seasonChip").textContent = teams.find(team => team.seasonLabel)?.seasonLabel ?? currentSeasonLabel();
+          document.getElementById("seasonEyebrow").textContent = `THE ENGLISH PREMIER LEAGUE · ${currentSeasonLabel()}`;
+          const latest = schedules.map(schedule => schedule.timestamp).filter(Boolean).sort().at(-1);
+          document.getElementById("updatedAt").textContent = latest ? new Date(latest).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" }) + " UTC" : "Just now";
+          document.getElementById("feed-status").textContent = "Live season feed";
+          renderTable();
+          const first = sortedTeams()[0];
+          if (first) {
+            state.selectedId = first.id;
+            loadTeamDetails(first.id);
+          }
+        } catch (error) {
+          state.loading = false;
+          showError(error);
+        }
+      }
+
+      document.getElementById("refreshButton").addEventListener("click", () => {
+        state.detailCache.clear();
+        state.careerCache.clear();
+        loadLeague();
+      });
+      searchInput.addEventListener("input", renderTable);
+      document.querySelectorAll(".club-tab").forEach(button => button.addEventListener("click", () => setTab(button.dataset.tab)));
+      document.querySelectorAll("[data-open-tab]").forEach(link => link.addEventListener("click", () => setTab(link.dataset.openTab)));
+      document.addEventListener("click", event => {
+        const profileButton = event.target.closest("[data-profile-type]");
+        if (profileButton) openCareerProfile(profileButton.dataset.profileType, profileButton.dataset.profileId, profileButton.dataset.teamId ?? "");
+      });
+      document.getElementById("careerClose").addEventListener("click", () => careerDialog.close());
+      careerDialog.addEventListener("click", event => {
+        if (event.target === careerDialog) careerDialog.close();
+      });
+      loadLeague();
+    })();
+  </script>
+</body>
+</html>
